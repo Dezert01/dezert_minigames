@@ -10,11 +10,19 @@
   font-family: "Inter", "Arial", sans-serif;
   background-color: transparent;
 }
-
+body {
+  background-color: #1c1c1c;
+}
 img {
   -webkit-user-drag: none;
   -khtml-user-drag: none;
   -moz-user-drag: none;
   -o-user-drag: none;
   user-drag: none;
+}
+
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
 }
