@@ -3,15 +3,19 @@ import axios, { AxiosError } from "axios";
 import MemoryTile from "./tile";
 
 const MemoryGame: React.FC = () => {
+  console.log("rerender");
   const inputRef = useRef<HTMLInputElement>(null);
   const [gameRunning, setGameRunning] = useState<boolean>(false);
-  const [board, setBoard] = useState<number[]>([0, 0, 0, 0, 0, 0, 0, 0]);
+  const [boardLength, setBoardLength] = useState<number | undefined>(undefined);
+  const [board, setBoard] = useState<number[]>([]);
   const [firstToMatch, setFirstToMatch] = useState<number | undefined>(
     undefined,
   );
   const [secondToMatch, setSecondToMatch] = useState<number | undefined>(
     undefined,
   );
+  const [tileOne, setTileOne] = useState<number | undefined>(undefined);
+  const [tileTwo, setTileTwo] = useState<number | undefined>(undefined);
   const [matchedTiles, setMatchedTiles] = useState<number[]>([]);
 
   const startGame = async () => {
@@ -21,12 +25,14 @@ const MemoryGame: React.FC = () => {
     const numberOfTiles = inputRef.current.value;
 
     try {
-      const response = await axios.post("http://localhost:8080/memory/start", {
-        numberOfTiles,
-      });
-      console.log("Game board generated:", response.data.gameBoard);
-      setBoard(response.data.gameBoard);
-      setGameRunning(true);
+      axios
+        .post("http://localhost:8080/memory/start", {
+          numberOfTiles,
+        })
+        .then((res) => {
+          setBoardLength(res.data.numberOfTiles);
+          setGameRunning(true);
+        });
     } catch (err) {
       if (axios.isAxiosError(err) && err.response) {
         const axiosError = err as AxiosError;
@@ -40,7 +46,7 @@ const MemoryGame: React.FC = () => {
     resetGame();
   };
 
-  const pressTile = (index: number) => {
+  const pressTile = async (index: number) => {
     if (
       !gameRunning ||
       matchedTiles.includes(index) ||
@@ -50,40 +56,51 @@ const MemoryGame: React.FC = () => {
     }
     if (firstToMatch === undefined) {
       setFirstToMatch(index);
+      setTileOne(await getElement(index));
     } else {
       setSecondToMatch(index);
+      setTileTwo(await getElement(index));
     }
   };
 
   useEffect(() => {
     if (secondToMatch !== undefined) {
-      // const timeout = setTimeout(() => {
       checkMatch();
-      // }, 1000);
-
-      // return () => clearTimeout(timeout);
     }
   }, [firstToMatch, secondToMatch]);
+
+  useEffect(() => {
+    if (boardLength && boardLength > 0) {
+      const board = [];
+      for (let i = 0; i < boardLength; i++) {
+        board.push(i);
+      }
+      setBoard(board);
+    }
+  }, [boardLength]);
 
   const checkMatch = async () => {
     if (firstToMatch !== undefined && secondToMatch !== undefined) {
       try {
-        // const timeout = setTimeout(() => {
-        const response = await checkMatchPromise(firstToMatch, secondToMatch);
-        console.log("Match status:", response.status);
-        if (response.status === 1) {
-          setMatchedTiles([...matchedTiles, firstToMatch, secondToMatch]);
-          setFirstToMatch(undefined);
-          setSecondToMatch(undefined);
-        } else if (response.status === 2) {
-          alert("Game is over, you are a winner!");
-          resetGame();
-        } else {
-          setTimeout(() => {
+        await checkMatchPromise(firstToMatch, secondToMatch).then((res) => {
+          if (res.status === 1) {
+            setMatchedTiles([...matchedTiles, firstToMatch, secondToMatch]);
             setFirstToMatch(undefined);
             setSecondToMatch(undefined);
-          }, 500);
-        }
+            setTileOne(undefined);
+            setTileTwo(undefined);
+          } else if (res.status === 2) {
+            alert("Game is over, you are a winner!");
+            resetGame();
+          } else {
+            setTimeout(() => {
+              setFirstToMatch(undefined);
+              setSecondToMatch(undefined);
+              setTileOne(undefined);
+              setTileTwo(undefined);
+            }, 500);
+          }
+        });
       } catch (error) {
         console.error("Error:", error);
       } finally {
@@ -108,12 +125,24 @@ const MemoryGame: React.FC = () => {
     }
   };
 
+  const getElement = async (index: number) => {
+    const element = axios
+      .get("http://localhost:8080/memory/getElement/" + index)
+      .then(function (response) {
+        return response.data;
+      });
+    return element;
+  };
+
   const resetGame = () => {
     setGameRunning(false);
     setFirstToMatch(undefined);
     setSecondToMatch(undefined);
+    setTileOne(undefined);
+    setTileTwo(undefined);
     setMatchedTiles([]);
-    setBoard([0, 0, 0, 0, 0, 0, 0, 0]);
+    setBoard([]);
+    setBoardLength(undefined);
   };
 
   return (
@@ -141,18 +170,27 @@ const MemoryGame: React.FC = () => {
 
       {/* board */}
       <div className="flex max-w-[40rem] flex-wrap justify-center gap-3 border-2 border-blue-200">
-        {board.map((el, index) => (
-          <MemoryTile
-            matched={
-              matchedTiles.includes(index) ||
-              index === firstToMatch ||
-              index === secondToMatch
-            }
-            key={index}
-            tile={{ index: index, el: el }}
-            onClick={() => pressTile(index)}
-          />
-        ))}
+        {board.length > 0 &&
+          board.map((el) => (
+            <MemoryTile
+              index={el}
+              matched={matchedTiles.includes(el)}
+              show={
+                el === firstToMatch ||
+                el === secondToMatch ||
+                matchedTiles.includes(el)
+              }
+              key={el}
+              tile={
+                el === firstToMatch
+                  ? tileOne
+                  : el === secondToMatch
+                    ? tileTwo
+                    : undefined
+              }
+              onClick={() => pressTile(el)}
+            />
+          ))}
       </div>
     </div>
   );

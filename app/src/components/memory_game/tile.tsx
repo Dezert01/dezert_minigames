@@ -1,42 +1,55 @@
+import axios from "axios";
 import { AnimatePresence, motion as m } from "framer-motion";
 import { useEffect, useState } from "react";
 
 type Props = {
-  tile: {
-    index: number;
-    el: number;
-  };
+  index: number;
+  tile: number | undefined;
   onClick: () => void;
   matched: boolean;
+  show: boolean;
 };
 
-const MemoryTile: React.FC<Props> = ({ tile, onClick, matched }) => {
+const MemoryTile: React.FC<Props> = ({
+  tile,
+  onClick,
+  matched,
+  show,
+  index,
+}) => {
   const [mounted, setMounted] = useState<boolean>(false);
+  const [element, setElement] = useState<string | undefined>(undefined);
 
   // to prevent animation going on mount
   useEffect(() => {
     setMounted(true);
   }, []);
 
+  useEffect(() => {
+    if (matched) {
+      axios
+        .get("http://localhost:8080/memory/getElement/" + index)
+        .then((res) => setElement(res.data));
+    }
+  }, [matched]);
+
   return (
     <div className="relative h-20 w-14">
       <AnimatePresence mode="wait">
-        {!matched && (
+        {!show && (
           <m.div
-            key={`back-${tile.index}`}
+            key={`back-${index}`}
             initial={mounted ? { rotateY: "90deg" } : { rotateY: "0deg" }}
             animate={{ rotateY: "0deg" }}
             exit={{ rotateY: "90deg" }}
             transition={{ duration: 0.15, ease: "linear" }}
             onClick={onClick}
             className="absolute h-full w-full border-2 border-black bg-[#111111]"
-          >
-            {/* {tile.el} */}
-          </m.div>
+          />
         )}
-        {matched && (
+        {show && (
           <m.div
-            key={`front-${tile.index}`}
+            key={`front-${index}`}
             initial={{ rotateY: "90deg" }}
             animate={{ rotateY: "0deg" }}
             exit={{ rotateY: "90deg" }}
@@ -46,7 +59,7 @@ const MemoryTile: React.FC<Props> = ({ tile, onClick, matched }) => {
               rotateY: "90deg",
             }}
           >
-            {tile.el}
+            {element !== undefined ? element : tile !== undefined && tile}
           </m.div>
         )}
       </AnimatePresence>

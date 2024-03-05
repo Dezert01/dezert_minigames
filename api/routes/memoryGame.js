@@ -27,17 +27,22 @@ function checkMatch(tiles) {
   return false
 }
 
+function getElement(index) {
+  if (index < 0 || index > gameBoard.length - 1) {
+    throw new Error("Wrong index");
+  }
+  return String(gameBoard[index])
+}
+
 // start game
 router.post('/start', (req, res) => {
 
   const numberOfTiles = req.body.numberOfTiles;
 
   try {
-    gameBoard = generateBoard(numberOfTiles) 
+    gameBoard = generateBoard(numberOfTiles)
     matchedCounter = 0
-    res.status(200).json({
-      gameBoard
-    })
+    res.status(200).json({ numberOfTiles })
   } catch (err) {
     res.status(400).json({ message: err.message })
   }
@@ -69,5 +74,14 @@ router.post('/checkMatch', (req, res) => {
   }
 
 })
+
+router.get('/getElement/:index', (req, res) => {
+  try {
+    res.status(200).send(getElement(Number(req.params.index)))
+  } catch(err) {
+    res.status(400).json({ message: err.message });
+  }
+})
+
 
 module.exports = router
