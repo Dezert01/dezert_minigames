@@ -11,6 +11,9 @@ app.use( express.json() )
 const memoryRouter = require('./routes/memoryGame')
 app.use('/memory', memoryRouter)
 
+const lightsoutRouter = require('./routes/lightsoutGame')
+app.use('/lightsout', lightsoutRouter)
+
 app.listen(
   PORT,
   () => console.log(`API is live and ready on http://localhost:${PORT}`)
