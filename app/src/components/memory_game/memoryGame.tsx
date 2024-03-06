@@ -43,7 +43,14 @@ const MemoryGame: React.FC = () => {
   };
 
   const stopGame = () => {
-    resetGame();
+    setGameRunning(false);
+    setFirstToMatch(undefined);
+    setSecondToMatch(undefined);
+    setTileOne(undefined);
+    setTileTwo(undefined);
+    setMatchedTiles([]);
+    setBoard([]);
+    setBoardLength(undefined);
   };
 
   const pressTile = async (index: number) => {
@@ -91,7 +98,7 @@ const MemoryGame: React.FC = () => {
             setTileTwo(undefined);
           } else if (res.status === 2) {
             alert("Game is over, you are a winner!");
-            resetGame();
+            stopGame();
           } else {
             setTimeout(() => {
               setFirstToMatch(undefined);
@@ -132,17 +139,6 @@ const MemoryGame: React.FC = () => {
         return response.data;
       });
     return element;
-  };
-
-  const resetGame = () => {
-    setGameRunning(false);
-    setFirstToMatch(undefined);
-    setSecondToMatch(undefined);
-    setTileOne(undefined);
-    setTileTwo(undefined);
-    setMatchedTiles([]);
-    setBoard([]);
-    setBoardLength(undefined);
   };
 
   return (
