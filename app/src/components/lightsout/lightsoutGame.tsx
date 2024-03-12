@@ -9,7 +9,7 @@ const LightsoutGame: React.FC = () => {
   const inputRef = useRef<HTMLInputElement>(null);
 
   const startGame = async () => {
-    if (!inputRef.current) {
+    if (!inputRef.current || !inputRef.current.value) {
       return;
     }
 

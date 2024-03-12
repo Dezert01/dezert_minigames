@@ -3,7 +3,6 @@ import axios, { AxiosError } from "axios";
 import MemoryTile from "./tile";
 
 const MemoryGame: React.FC = () => {
-  console.log("rerender");
   const inputRef = useRef<HTMLInputElement>(null);
   const [gameRunning, setGameRunning] = useState<boolean>(false);
   const [boardLength, setBoardLength] = useState<number | undefined>(undefined);
@@ -19,7 +18,7 @@ const MemoryGame: React.FC = () => {
   const [matchedTiles, setMatchedTiles] = useState<number[]>([]);
 
   const startGame = async () => {
-    if (!inputRef.current) {
+    if (!inputRef.current || !inputRef.current.value) {
       return;
     }
     const numberOfTiles = inputRef.current.value;
