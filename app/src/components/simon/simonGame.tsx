@@ -8,6 +8,8 @@ const SimonGame: React.FC = () => {
   const [gameRunning, setGameRunning] = useState<boolean>(false);
   const [boardSize, setBoardSize] = useState<number | undefined>(undefined);
   const [board, setBoard] = useState<number[]>([]);
+  const [blocked, setBlocked] = useState<boolean>(true);
+  const [highlighted, setHighlighted] = useState<number | undefined>(undefined);
 
   const startGame = async () => {
     if (
@@ -28,6 +30,7 @@ const SimonGame: React.FC = () => {
         .then((res) => {
           setGameRunning(true);
           setBoardSize(res.data.boardSize);
+          highlightTiles(res.data.roundMoves);
         });
     } catch (err) {
       if (axios.isAxiosError(err) && err.response) {
@@ -38,6 +41,24 @@ const SimonGame: React.FC = () => {
     }
   };
   const stopGame = () => {};
+  const sleepNow = (delay: number) =>
+    new Promise((resolve) => setTimeout(resolve, delay));
+
+  const highlightTiles = async (tiles: number[]) => {
+    console.log(tiles);
+    setBlocked(true);
+
+    for (let i = 0; i < tiles.length; i++) {
+      await sleepNow(500);
+      setHighlighted(tiles[i]);
+      // setTimeout(() => {
+      //   console.log(tiles[i]);
+      // }, 1000 * i);
+    }
+    await sleepNow(500);
+    setHighlighted(undefined);
+    setBlocked(false);
+  };
 
   useEffect(() => {
     if (boardSize && boardSize > 0) {
@@ -92,7 +113,7 @@ const SimonGame: React.FC = () => {
             }}
           >
             {board.map((el) => {
-              return <SimonTile key={el} />;
+              return <SimonTile key={el} highlighted={highlighted === el} />;
             })}
           </div>
         </div>
