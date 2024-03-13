@@ -1,61 +1,56 @@
-const express = require('express')
-const router = express.Router()
+const express = require("express");
+const router = express.Router();
 
-
-let gameBoard = []
-let matchedCounter = 0
+let gameBoard = [];
+let matchedCounter = 0;
 
 function generateBoard(num) {
   if (num < 2) {
-    throw new Error('Number of tiles has to be greater than 1.');
+    throw new Error("Number of tiles has to be greater than 1.");
   }
   if (num % 2 !== 0) {
-    throw new Error('Number of tiles has to be even.');
+    throw new Error("Number of tiles has to be even.");
   }
-  const tiles = []
-  for (let i = 0; i < num/2; i=i+1) {
+  const tiles = [];
+  for (let i = 0; i < num / 2; i = i + 1) {
     tiles.push(i);
     tiles.push(i);
   }
-  return tiles.sort((a, b) => 0.5 - Math.random())
+  return tiles.sort((a, b) => 0.5 - Math.random());
 }
 
 function checkMatch(tiles) {
   if (tiles[0] > -1 && tiles[1] > -1 && tiles[0] !== tiles[1]) {
-    return gameBoard[tiles[0]] === gameBoard[tiles[1]]
+    return gameBoard[tiles[0]] === gameBoard[tiles[1]];
   }
-  return false
+  return false;
 }
 
 function getElement(index) {
   if (index < 0 || index > gameBoard.length - 1) {
     throw new Error("Wrong index");
   }
-  return String(gameBoard[index])
+  return String(gameBoard[index]);
 }
 
 // start game
-router.post('/start', (req, res) => {
-
+router.post("/start", (req, res) => {
   const numberOfTiles = req.body.numberOfTiles;
 
   try {
-    gameBoard = generateBoard(numberOfTiles)
-    matchedCounter = 0
-    res.status(200).json({ numberOfTiles })
+    gameBoard = generateBoard(numberOfTiles);
+    matchedCounter = 0;
+    res.status(200).json({ numberOfTiles });
   } catch (err) {
-    res.status(400).json({ message: err.message })
+    res.status(400).json({ message: err.message });
   }
-
-})
+});
 
 // check if tiles match
-router.post('/checkMatch', (req, res) => {
-
+router.post("/checkMatch", (req, res) => {
   const tiles = req.body.tiles;
 
   if (tiles.length === 2) {
-
     const matched = checkMatch(tiles);
 
     if (matched) {
@@ -72,16 +67,14 @@ router.post('/checkMatch', (req, res) => {
   } else {
     res.status(400).json({ message: "Expected two tiles" });
   }
+});
 
-})
-
-router.get('/getElement/:index', (req, res) => {
+router.get("/getElement/:index", (req, res) => {
   try {
-    res.status(200).send(getElement(Number(req.params.index)))
-  } catch(err) {
+    res.status(200).send(getElement(Number(req.params.index)));
+  } catch (err) {
     res.status(400).json({ message: err.message });
   }
-})
+});
 
-
-module.exports = router
+module.exports = router;

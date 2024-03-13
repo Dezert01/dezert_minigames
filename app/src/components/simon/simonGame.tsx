@@ -40,7 +40,12 @@ const SimonGame: React.FC = () => {
       }
     }
   };
-  const stopGame = () => {};
+  const stopGame = () => {
+    setGameRunning(false);
+    setBoardSize(undefined);
+    setBoard([]);
+    setHighlighted(undefined);
+  };
   const sleepNow = (delay: number) =>
     new Promise((resolve) => setTimeout(resolve, delay));
 
@@ -51,9 +56,6 @@ const SimonGame: React.FC = () => {
     for (let i = 0; i < tiles.length; i++) {
       await sleepNow(500);
       setHighlighted(tiles[i]);
-      // setTimeout(() => {
-      //   console.log(tiles[i]);
-      // }, 1000 * i);
     }
     await sleepNow(500);
     setHighlighted(undefined);
@@ -70,6 +72,32 @@ const SimonGame: React.FC = () => {
       setBoard(board);
     }
   }, [boardSize]);
+
+  const pressTile = async (index: number) => {
+    if (blocked) return;
+
+    try {
+      setBlocked(true);
+      await axios
+        .post("http://localhost:8080/simon/checkMatch", { index })
+        .then((res) => {
+          console.log(res);
+          if (res.data.status === 0) {
+            setBlocked(false);
+          } else if (res.data.status === 1) {
+            setBlocked(false);
+            setBoardSize(res.data.boardSize);
+            highlightTiles(res.data.roundMoves);
+          } else {
+            alert("You won");
+            stopGame();
+          }
+        });
+    } catch (err) {
+      alert("Wrong tile, try again");
+      stopGame();
+    }
+  };
 
   return (
     <div>
@@ -113,7 +141,13 @@ const SimonGame: React.FC = () => {
             }}
           >
             {board.map((el) => {
-              return <SimonTile key={el} highlighted={highlighted === el} />;
+              return (
+                <SimonTile
+                  onClick={() => pressTile(el)}
+                  key={el}
+                  highlighted={highlighted === el}
+                />
+              );
             })}
           </div>
         </div>
