@@ -19,6 +19,9 @@ app.use("/lightsout", lightsoutRouter);
 const simonRouter = require("./routes/simonGame");
 app.use("/simon", simonRouter);
 
+const typingRouter = require("./routes/typingGame");
+app.use("/typing", typingRouter);
+
 app.listen(PORT, () =>
   console.log(`API is live and ready on http://localhost:${PORT}`)
 );
